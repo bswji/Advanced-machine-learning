@@ -11,6 +11,7 @@ data = data.drop(columns = ["player_id", "num", "type"])
 
 #Check missing values
 data.isnull().sum()
+<<<<<<< Updated upstream
 
 #Drop columns that contain >100 missing values.
 data_wo_na = data.drop(columns = ["rimmade", "rimmade_rimmiss", "midmade", "midmade_midmiss", "mid_ratio", "dunksmade","dunksmiss_dunksmade","dunks_ratio","pick", "Rec_Rank", "ast_tov", "rim_ratio", "yr"])
@@ -93,3 +94,7 @@ optimised_pred = optimisedrf.predict(feature_test)
 optimisedroc = roc_auc_score(target_test, optimised_pred)
 print(optimisedroc)
 
+=======
+len(data)
+po
+>>>>>>> Stashed changes

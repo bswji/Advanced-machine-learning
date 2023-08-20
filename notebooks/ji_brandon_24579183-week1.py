@@ -94,7 +94,3 @@ optimised_pred = optimisedrf.predict(feature_test)
 optimisedroc = roc_auc_score(target_test, optimised_pred)
 print(optimisedroc)
 
-=======
-len(data)
-po
->>>>>>> Stashed changes

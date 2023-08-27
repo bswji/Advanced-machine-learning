@@ -2,16 +2,16 @@ import pandas as pd
 pd.set_option("display.max_columns" , None)
 
 #Read data
-data = pd.read_csv("https://raw.githubusercontent.com/bswji/Advanced-machine-learning/main/Data/Week%201/train.csv?token=GHSAT0AAAAAACGH327TWKJY4MOW7BSYEQW2ZHAUQEA")
-data.info()
+data = pd.read_csv("https://raw.githubusercontent.com/bswji/Advanced-machine-learning/main/Data/Week%201/train.csv?token=GHSAT0AAAAAACGH327SAEMLUN76VMNLCSZUZHJ24MQ")
 
 #Drop irrelevant columns
 data = data.drop(columns = ["player_id", "num", "type"])
 
-
+data.info()
+data['drafted'].value_counts()
+ 
 #Check missing values
 data.isnull().sum()
-<<<<<<< Updated upstream
 
 #Drop columns that contain >100 missing values.
 data_wo_na = data.drop(columns = ["rimmade", "rimmade_rimmiss", "midmade", "midmade_midmiss", "mid_ratio", "dunksmade","dunksmiss_dunksmade","dunks_ratio","pick", "Rec_Rank", "ast_tov", "rim_ratio", "yr"])
@@ -23,7 +23,7 @@ data_no_na = data_wo_na.dropna()
 data_no_na.isna().sum()
 len(data_no_na)
 
-#Check categorical values (team, conf, ht, all)
+#Check categorical values (team, conf, ht, type)
 data_no_na['team'].nunique()
 data_no_na['conf'].nunique()
 data_no_na['ht'].nunique()
@@ -43,7 +43,6 @@ df = data_removed
 features = df.drop(columns=['drafted'])
 features.info()
 target = df['drafted']
-target.info()
 
 feature_train, feature_test, target_train, target_test = train_test_split(features, target, test_size = 0.2, random_state=22)
 len(df)
@@ -79,18 +78,31 @@ print(rf_roc_auc)
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from scipy.stats import randint
 
-param_dist = {'n_estimators': randint(50,500), 'max_depth': randint(1,20)}
-rand_search = RandomizedSearchCV(rf, param_distributions = param_dist, n_iter=5, cv=5)
-
+param_dist = {'n_estimators': [50, 100, 200, 300, 400 ,500], 'max_depth': [None, 10, 20, 30], 'max_features':["sqrt", "log2", None]}
+randomforest = RandomForestClassifier()
+rand_search = RandomizedSearchCV(randomforest, param_distributions = param_dist, n_iter=5, cv=5, random_state=45)
 
 rand_search.fit(feature_train, target_train)
 
 best_rf = rand_search.best_estimator_
 print(best_rf)
-
-rf = RandomForestClassifier(n_estimators= 207, max_depth = 11)
+#Use optimised parameters
+rf = RandomForestClassifier(n_estimators= 400, max_depth = 10, max_features="log2")
 optimisedrf = rf.fit(feature_train, target_train)
 optimised_pred = optimisedrf.predict(feature_test)
 optimisedroc = roc_auc_score(target_test, optimised_pred)
 print(optimisedroc)
 
+#Tune decision tree hyper parameters
+dt = DecisionTreeClassifier()
+param_dt = {'max_depth': [None, 10, 20, 30], 'max_features':["sqrt", "log2", None], 'min_samples_split': [2,5,10,15,20]}
+optimise_dt = RandomizedSearchCV(dt, param_distributions=param_dt, n_iter=5, cv = 5, random_state=55)
+optimise_dt.fit(feature_train,target_train)
+best_dt = optimise_dt.best_params_
+print(best_dt)
+
+optimiseddt = DecisionTreeClassifier(min_samples_split=20, max_features="sqrt", max_depth=10)
+dt2 = optimiseddt.fit(feature_train, target_train)
+pred = dt2.predict(feature_test)
+roc = roc_auc_score(target_test,pred)
+print(roc)

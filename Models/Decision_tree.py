@@ -66,33 +66,9 @@ from sklearn.metrics import roc_auc_score
 roc_auc = roc_auc_score(target_test, ypred)
 print(roc_auc)
 
-#Random forest
-from sklearn.ensemble import RandomForestClassifier
-rf = RandomForestClassifier()
-rfclass = rf.fit(feature_train, target_train)
-y_pred = rfclass.predict(feature_test)
-rf_roc_auc = roc_auc_score(target_test, y_pred)
-print(rf_roc_auc)
-
-#Tune hyper parameters
+#Tune decision tree hyper parameters
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
 
-param_dist = {'n_estimators': [50, 100, 200, 300, 400 ,500], 'max_depth': [None, 10, 20, 30], 'max_features':["sqrt", "log2", None]}
-randomforest = RandomForestClassifier()
-rand_search = RandomizedSearchCV(randomforest, param_distributions = param_dist, n_iter=5, cv=5, random_state=45)
-
-rand_search.fit(feature_train, target_train)
-
-best_rf = rand_search.best_estimator_
-print(best_rf)
-#Use optimised parameters
-rf = RandomForestClassifier(n_estimators= 400, max_depth = 10, max_features="log2")
-optimisedrf = rf.fit(feature_train, target_train)
-optimised_pred = optimisedrf.predict(feature_test)
-optimisedroc = roc_auc_score(target_test, optimised_pred)
-print(optimisedroc)
-
-#Tune decision tree hyper parameters
 dt = DecisionTreeClassifier()
 param_dt = {'max_depth': [None, 10, 20, 30], 'max_features':["sqrt", "log2", None], 'min_samples_split': [2,5,10,15,20]}
 optimise_dt = RandomizedSearchCV(dt, param_distributions=param_dt, n_iter=5, cv = 5, random_state=55)

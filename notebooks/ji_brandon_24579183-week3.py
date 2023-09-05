@@ -3,7 +3,7 @@ from scipy import stats
 import numpy as np
 from sklearn.model_selection import train_test_split 
 
-pd.set_option("display.max_columns" , None)
+pd.set_option("display.max_rows" , None)
 
 #Read data
 data = pd.read_csv('Data/Week 1/train.csv')
@@ -130,7 +130,7 @@ print(best_params)
 
 feature_train_scaled.describe()
 
-svc = SVC(kernel='rbf',C = 100)
+svc = SVC(kernel='rbf', random_state=44)
 svc.fit(feature_train_scaled, target_train_smote)
 svm_pred_smote = svc.predict(feature_test_scaled)
 roc_svm_smote = roc_auc_score(target_test, svm_pred_smote)
@@ -147,3 +147,109 @@ rf_knn_balanced_roc = roc_auc_score(target_test, rf_knn_balanced_pred)
 print(rf_knn_balanced_roc)
 
 
+#Try encoding categorical variables
+cat = data[['yr','conf', 'team']]
+cat['yr'].value_counts()
+cat['conf'].value_counts()
+cat['team'].value_counts()
+cat.info()
+data.info()
+
+missing = data.isna().sum()
+print(missing)
+
+#Remove missing values from 'yr' 
+data.dropna(subset = ['yr'],inplace=True)
+missing = data.isna().sum()
+print(missing)
+
+#Remove incorrect values from 'yr'
+values = ['0','57.1','42.9']
+data = data[~data['yr'].isin(values)]
+data['yr'].value_counts()
+
+#Data encoded
+data_encoded = pd.get_dummies(data, columns = ['conf','yr','team'],prefix ='encode')
+data_encoded.info()
+data_encoded['drafted'].value_counts()
+#IMPUTE
+from sklearn.impute import KNNImputer
+imputer = KNNImputer(n_neighbors=5)
+knn_df = pd.DataFrame(imputer.fit_transform(data_encoded),columns=data_encoded.columns)
+knn_df.head(3)
+
+#Split into training/test
+df = knn_df
+features = df.drop(columns=['drafted'])
+features.info()
+target = df['drafted']
+
+feature_train, feature_test, target_train, target_test = train_test_split(features, target, test_size = 0.2, random_state=22)
+
+from imblearn.over_sampling import SMOTE
+
+#Balance dataset
+smote = SMOTE(random_state=42)
+feature_train_smote, target_train_smote = smote.fit_resample(feature_train, target_train)
+
+len(feature_train_smote)
+len(target_train_smote)
+target_train_smote.value_counts()
+
+#Scale data
+#Minmax
+feature_train_smote.head(3)
+feature_train_smote_cols = feature_train_smote.columns.tolist()
+print(feature_train_smote_cols)
+feature_test_cols = feature_test.columns.tolist()
+print(feature_test_cols)
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler()
+scaler.fit(feature_train_smote)
+feature_train_scaled = scaler.transform(feature_train_smote)
+feature_train_scaled = pd.DataFrame(feature_train_scaled,columns = feature_train_smote_cols)
+feature_train_scaled.head(3)
+feature_test_scaled = scaler.transform(feature_test)
+feature_test_scaled = pd.DataFrame(feature_test_scaled, columns = feature_test_cols)
+feature_test_scaled.head(3)
+
+#random forest
+from sklearn.ensemble import RandomForestClassifier
+rf_cats = RandomForestClassifier(random_state=42)
+rf_cats.fit(feature_train_scaled, target_train_smote)
+rf_cats_pred = rf_cats.predict(feature_test_scaled)
+rf_cats_roc = roc_auc_score(target_test, rf_cats_pred)
+print(rf_knn_balanced_roc)
+
+
+
+logistic_model = LogisticRegression(max_iter = 10000)
+logistic_model.fit(feature_train_scaled, target_train_smote)
+logistic_pred_smote = logistic_model.predict(feature_test_scaled)
+roc_log_smote = roc_auc_score(target_test, logistic_pred_smote)
+print(roc_log_smote)
+
+
+from sklearn.svm import SVC
+svm_model = SVC()
+svm_model.fit(feature_train_scaled, target_train_smote)
+svm_pred_smote = svm_model.predict(feature_test_scaled)
+roc_svm_smote = roc_auc_score(target_test, svm_pred_smote)
+print(roc_svm_smote)
+
+feature_train_scaled.head(3)
+
+importances = rf_cats.feature_importances_
+print(importances)
+
+
+feature_names = pd.DataFrame(feature_train_scaled).columns.to_list()
+feature_train_scaled.head(3)
+print(feature_names)
+feature_importance_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+
+# Sort the DataFrame by importance in descending order to see the most important features first
+feature_importance_df = feature_importance_df.sort_values(by='Importance', ascending=False)
+
+# Print or display the sorted DataFrame
+print(feature_importance_df)

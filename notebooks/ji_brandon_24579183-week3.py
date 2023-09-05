@@ -66,8 +66,9 @@ feature_test_scaled = pd.DataFrame(feature_test_scaled)
 feature_test_scaled.head(5)
 
 #Logistic regression
+from sklearn.metrics import roc_auc_score
 from sklearn.linear_model import LogisticRegression
-logistic_model = LogisticRegression()
+logistic_model = LogisticRegression(max_iter = 10000)
 logistic_model.fit(feature_train_scaled, target_train_smote)
 logistic_pred_smote = logistic_model.predict(feature_test_scaled)
 roc_log_smote = roc_auc_score(target_test, logistic_pred_smote)
@@ -75,8 +76,74 @@ print(roc_log_smote)
 
 #SVM
 from sklearn.svm import SVC
-svm_model = SVC(kernel = 'linear')
+svm_model = SVC()
 svm_model.fit(feature_train_scaled, target_train_smote)
 svm_pred_smote = svm_model.predict(feature_test_scaled)
 roc_svm_smote = roc_auc_score(target_test, svm_pred_smote)
 print(roc_svm_smote)
+
+
+#Tune HYPERPARAMETERS
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
+    'C':[0.001, 0.01, 0.1, 1, 10, 100],
+}
+
+optimised = {
+    'solver':['lbfgs'],
+    'C':[100],
+}
+
+grid_search = GridSearchCV(estimator=logistic_model, param_grid=param_grid, scoring='roc_auc', cv=5, n_jobs=-1)
+grid_search.fit(feature_train_scaled, target_train_smote)
+best_params = grid_search.best_params_
+print(best_params)
+
+grid_search = GridSearchCV(estimator=logistic_model, param_grid=optimised, scoring='roc_auc', cv=5, n_jobs=-1)
+grid_search.fit(feature_train_scaled, target_train_smote)
+best_params = grid_search.best_params_
+print(best_params)
+
+
+
+#Try parameters -0.95 roc
+from sklearn.linear_model import LogisticRegression
+logistic_model = LogisticRegression(max_iter = 10000, solver='lbfgs', C=100)
+logistic_model.fit(feature_train_scaled, target_train_smote)
+logistic_pred_smote = logistic_model.predict(feature_test_scaled)
+roc_log_smote = roc_auc_score(target_test, logistic_pred_smote)
+print(roc_log_smote)
+
+
+#Tune svm
+params = {
+    # 'C':[0.1,1,10,100],
+    'kernel':['linear', 'poly','rbf']
+}
+svc = SVC()
+grid_search = GridSearchCV(estimator=svc, param_grid=params, scoring='roc_auc', cv=5, n_jobs=-1)
+grid_search.fit(feature_train_scaled, target_train_smote)
+best_params = grid_search.best_params_
+print(best_params)
+
+feature_train_scaled.describe()
+
+svc = SVC(kernel='rbf',C = 100)
+svc.fit(feature_train_scaled, target_train_smote)
+svm_pred_smote = svc.predict(feature_test_scaled)
+roc_svm_smote = roc_auc_score(target_test, svm_pred_smote)
+print(roc_svm_smote)
+
+
+
+#Try random forest
+from sklearn.ensemble import RandomForestClassifier
+rf_knn_balanced = RandomForestClassifier(random_state=42)
+rf_knn_balanced.fit(feature_train_scaled, target_train_smote)
+rf_knn_balanced_pred = rf_knn_balanced.predict(feature_test_scaled)
+rf_knn_balanced_roc = roc_auc_score(target_test, rf_knn_balanced_pred)
+print(rf_knn_balanced_roc)
+
+

@@ -67,20 +67,49 @@ feature_test_scaled.head(5)
 
 #Logistic regression
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.linear_model import LogisticRegression
 logistic_model = LogisticRegression(max_iter = 10000)
 logistic_model.fit(feature_train_scaled, target_train_smote)
 logistic_pred_smote = logistic_model.predict(feature_test_scaled)
-roc_log_smote = roc_auc_score(target_test, logistic_pred_smote)
-print(roc_log_smote)
+#Calculate eval
+accuracy = accuracy_score(target_test, logistic_pred_smote)
+
+precision = precision_score(target_test, logistic_pred_smote)
+
+recall = recall_score(target_test, logistic_pred_smote)
+
+f1 = f1_score(target_test, logistic_pred_smote)
+
+roc_auc = roc_auc_score(target_test, logistic_pred_smote)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #SVM
 from sklearn.svm import SVC
 svm_model = SVC()
 svm_model.fit(feature_train_scaled, target_train_smote)
 svm_pred_smote = svm_model.predict(feature_test_scaled)
-roc_svm_smote = roc_auc_score(target_test, svm_pred_smote)
-print(roc_svm_smote)
+#Calculate eval
+accuracy = accuracy_score(target_test, svm_pred_smote)
+
+precision = precision_score(target_test, svm_pred_smote)
+
+recall = recall_score(target_test, svm_pred_smote)
+
+f1 = f1_score(target_test, svm_pred_smote)
+
+roc_auc = roc_auc_score(target_test, svm_pred_smote)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 
 #Tune HYPERPARAMETERS
@@ -106,20 +135,32 @@ grid_search.fit(feature_train_scaled, target_train_smote)
 best_params = grid_search.best_params_
 print(best_params)
 
-
-
-#Try parameters -0.95 roc
+#Try parameters 
 from sklearn.linear_model import LogisticRegression
 logistic_model = LogisticRegression(max_iter = 10000, solver='lbfgs', C=100)
 logistic_model.fit(feature_train_scaled, target_train_smote)
 logistic_pred_smote = logistic_model.predict(feature_test_scaled)
-roc_log_smote = roc_auc_score(target_test, logistic_pred_smote)
-print(roc_log_smote)
+#Calculate eval
+accuracy = accuracy_score(target_test, logistic_pred_smote)
+
+precision = precision_score(target_test, logistic_pred_smote)
+
+recall = recall_score(target_test, logistic_pred_smote)
+
+f1 = f1_score(target_test, logistic_pred_smote)
+
+roc_auc = roc_auc_score(target_test, logistic_pred_smote)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 
 #Tune svm
 params = {
-    # 'C':[0.1,1,10,100],
+    'C':[0.1,1,10,100],
     'kernel':['linear', 'poly','rbf']
 }
 svc = SVC()
@@ -133,19 +174,22 @@ feature_train_scaled.describe()
 svc = SVC(kernel='rbf', random_state=44)
 svc.fit(feature_train_scaled, target_train_smote)
 svm_pred_smote = svc.predict(feature_test_scaled)
-roc_svm_smote = roc_auc_score(target_test, svm_pred_smote)
-print(roc_svm_smote)
+#Calculate eval
+accuracy = accuracy_score(target_test, svm_pred_smote)
 
+precision = precision_score(target_test, svm_pred_smote)
 
+recall = recall_score(target_test, svm_pred_smote)
 
-#Try random forest
-from sklearn.ensemble import RandomForestClassifier
-rf_knn_balanced = RandomForestClassifier(random_state=42)
-rf_knn_balanced.fit(feature_train_scaled, target_train_smote)
-rf_knn_balanced_pred = rf_knn_balanced.predict(feature_test_scaled)
-rf_knn_balanced_roc = roc_auc_score(target_test, rf_knn_balanced_pred)
-print(rf_knn_balanced_roc)
+f1 = f1_score(target_test, svm_pred_smote)
 
+roc_auc = roc_auc_score(target_test, svm_pred_smote)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #Try encoding categorical variables
 cat = data[['yr','conf', 'team']]
@@ -221,23 +265,20 @@ rf_cats_pred = rf_cats.predict(feature_test_scaled)
 rf_cats_roc = roc_auc_score(target_test, rf_cats_pred)
 print(rf_knn_balanced_roc)
 
-
-
+#Logistic regression
 logistic_model = LogisticRegression(max_iter = 10000)
 logistic_model.fit(feature_train_scaled, target_train_smote)
 logistic_pred_smote = logistic_model.predict(feature_test_scaled)
 roc_log_smote = roc_auc_score(target_test, logistic_pred_smote)
 print(roc_log_smote)
 
-
+#SVM
 from sklearn.svm import SVC
 svm_model = SVC()
 svm_model.fit(feature_train_scaled, target_train_smote)
 svm_pred_smote = svm_model.predict(feature_test_scaled)
 roc_svm_smote = roc_auc_score(target_test, svm_pred_smote)
 print(roc_svm_smote)
-
-feature_train_scaled.head(3)
 
 importances = rf_cats.feature_importances_
 print(importances)

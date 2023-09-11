@@ -1,12 +1,13 @@
 import pandas as pd
 pd.set_option("display.max_columns" , None)
+pd.set_option("display.max_rows",None)
 
 #Read data
-data = pd.read_csv("https://raw.githubusercontent.com/bswji/Advanced-machine-learning/main/Data/Week%201/train.csv?token=GHSAT0AAAAAACGH327SAEMLUN76VMNLCSZUZHJ24MQ")
+data = pd.read_csv("/Week%201/train.csv?token=GHSAT0AAAAAACGH327SAEMLUN76VMNLCSZUZHJ24MQ")
 
 #Drop irrelevant columns
 data = data.drop(columns = ["player_id", "num", "type"])
-
+data = data.drop(columns = ["team", "conf", "ht"])
 data.info()
 data['drafted'].value_counts()
  
@@ -30,7 +31,7 @@ data_no_na['ht'].nunique()
 data_no_na['type'].nunique()
 
 #Remove categorical values
-data_removed = data_no_na.drop(columns = ["team", "conf", "ht"])
+data_removed = data_no_na
 
 ### Modelling ###
 
@@ -61,18 +62,49 @@ clf = clf.fit(feature_train, target_train)
 ypred = clf.predict(feature_test)
 ypred = pd.Series(ypred)
 
-#Calculate ROC
+#Calculate eval
 from sklearn.metrics import roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+
+accuracy = accuracy_score(target_test, ypred)
+
+precision = precision_score(target_test, ypred)
+
+recall = recall_score(target_test, ypred)
+
+f1 = f1_score(target_test, ypred)
+
 roc_auc = roc_auc_score(target_test, ypred)
-print(roc_auc)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #Random forest
 from sklearn.ensemble import RandomForestClassifier
 rf = RandomForestClassifier()
 rfclass = rf.fit(feature_train, target_train)
 y_pred = rfclass.predict(feature_test)
-rf_roc_auc = roc_auc_score(target_test, y_pred)
-print(rf_roc_auc)
+
+#Evaluate
+
+accuracy = accuracy_score(target_test, y_pred)
+
+precision = precision_score(target_test, y_pred)
+
+recall = recall_score(target_test, y_pred)
+
+f1 = f1_score(target_test, y_pred)
+
+roc_auc = roc_auc_score(target_test, y_pred)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #Tune hyper parameters
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
@@ -89,8 +121,23 @@ print(best_rf)
 rf = RandomForestClassifier(n_estimators= 400, max_depth = 10, max_features="log2")
 optimisedrf = rf.fit(feature_train, target_train)
 optimised_pred = optimisedrf.predict(feature_test)
-optimisedroc = roc_auc_score(target_test, optimised_pred)
-print(optimisedroc)
+
+accuracy = accuracy_score(target_test, optimised_pred)
+
+precision = precision_score(target_test, optimised_pred)
+
+recall = recall_score(target_test, optimised_pred)
+
+f1 = f1_score(target_test, optimised_pred)
+
+roc_auc = roc_auc_score(target_test, optimised_pred)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
+
 
 #Tune decision tree hyper parameters
 dt = DecisionTreeClassifier()
@@ -103,5 +150,19 @@ print(best_dt)
 optimiseddt = DecisionTreeClassifier(min_samples_split=20, max_features="sqrt", max_depth=10)
 dt2 = optimiseddt.fit(feature_train, target_train)
 pred = dt2.predict(feature_test)
-roc = roc_auc_score(target_test,pred)
-print(roc)
+
+accuracy = accuracy_score(target_test, pred)
+
+precision = precision_score(target_test, pred)
+
+recall = recall_score(target_test, pred)
+
+f1 = f1_score(target_test, pred)
+
+roc_auc = roc_auc_score(target_test, pred)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)

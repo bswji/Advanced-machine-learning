@@ -44,74 +44,6 @@ for column, count in outlier_counts.items():
 #Check how many have missing values in rest of columns
 data.isna().sum()
 
-#Try imputing mean values
-df_mean = pd.DataFrame(data)
-df_mean = df_mean.drop(columns=['team','conf','yr'])
-df_mean.info()
-for column in df_mean.columns:
-    column_mean = df_mean[column].mean()
-    df_mean[column].fillna(column_mean, inplace=True)
-   
-df_mean.isna().sum()
-
-#Split into test/training set
-#Split into training and test set
-df = df_mean
-features = df.drop(columns=['drafted'])
-features.info()
-target = df['drafted']
-
-feature_train, feature_test, target_train, target_test = train_test_split(features, target, test_size = 0.2, random_state=22)
-len(df)
-len(feature_train)
-len(feature_test)
-len(target_train)
-len(target_test)
-
-#Decision tree
-from sklearn.tree import DecisionTreeClassifier
-clf = DecisionTreeClassifier()
-clf = clf.fit(feature_train, target_train)
-ypred = clf.predict(feature_test)
-ypred = pd.Series(ypred)
-#Calculate ROC 
-from sklearn.metrics import roc_auc_score
-roc_auc = roc_auc_score(target_test, ypred)
-print(roc_auc)
-
-#Random forest
-from sklearn.ensemble import RandomForestClassifier
-rf = RandomForestClassifier()
-rfclass = rf.fit(feature_train, target_train)
-#Calculate ROC 
-y_pred = rfclass.predict(feature_test)
-rf_roc_auc = roc_auc_score(target_test, y_pred)
-print(rf_roc_auc)
-
-#Try balanced random forest
-rf_balanced = RandomForestClassifier(class_weight='balanced', random_state=42)
-rf_balanced.fit(feature_train, target_train)
-rf_balanced_pred = rf_balanced.predict(feature_test)
-rf_balanced_roc = roc_auc_score(target_test, rf_balanced_pred)
-print(rf_balanced_roc)
-
-#Scale data 
-
- 
-#Try logistic regression
-from sklearn.linear_model import LogisticRegression
-logistic = LogisticRegression()
-logistic.fit(feature_train,target_train)
-logistic_pred = logistic.predict(feature_test)
-logistic_roc = roc_auc_score(target_test,logistic_pred)
-print(logistic_roc)
-
-
-
- 
-
-
-
 #Try imputing using kNN
 from sklearn.impute import KNNImputer
 imputer = KNNImputer(n_neighbors=5)
@@ -133,41 +65,12 @@ len(feature_test)
 len(target_train)
 len(target_test)
 
-#Decision tree with kNN
-from sklearn.tree import DecisionTreeClassifier
-knnclf = DecisionTreeClassifier()
-knnclf = knnclf.fit(feature_train, target_train)
-knnpred = knnclf.predict(feature_test)
-knnpred = pd.Series(knnpred)
-#Calculate ROC 
-from sklearn.metrics import roc_auc_score
-knn_roc = roc_auc_score(target_test, knnpred)
-print(knn_roc)
-
-#RF with KNN
-from sklearn.ensemble import RandomForestClassifier
-rfknn = RandomForestClassifier()
-rfclass = rfknn.fit(feature_train, target_train)
-#Calculate ROC 
-knnpred = rfclass.predict(feature_test)
-rfknn_roc = roc_auc_score(target_test, knnpred)
-print(rfknn_roc)
-
-#Balanced rf with knn
-rf_knn_balanced = RandomForestClassifier(class_weight='balanced', random_state=42)
-rf_knn_balanced.fit(feature_train, target_train)
-rf_knn_balanced_pred = rf_knn_balanced.predict(feature_test)
-rf_knn_balanced_roc = roc_auc_score(target_test, rf_knn_balanced_pred)
-print(rf_knn_balanced_roc)
-
 #Check histograms
 import matplotlib.pyplot as plt
 
 knn_df.hist(bins=20, density=True, figsize=(8, 8))
 plt.suptitle("Histograms of Columns")
 plt.show()
-
-
 
 from imblearn.over_sampling import SMOTE
 
@@ -179,19 +82,54 @@ len(feature_train_smote)
 len(target_train_smote)
 target_train_smote.value_counts()
 
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+
 #Decision tree
 decisiontree = DecisionTreeClassifier()
 decisiontree.fit(feature_train_smote,target_train_smote)
 dec_smote_pred = decisiontree.predict(feature_test)
-roc_dec_smote = roc_auc_score(target_test, dec_smote_pred)
-print(roc_dec_smote)
+
+#Calculate eval 
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+
+accuracy = accuracy_score(target_test, dec_smote_pred)
+
+precision = precision_score(target_test, dec_smote_pred)
+
+recall = recall_score(target_test, dec_smote_pred)
+
+f1 = f1_score(target_test, dec_smote_pred)
+
+roc_auc = roc_auc_score(target_test, dec_smote_pred)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #Random forest
 rf = RandomForestClassifier()
 rf.fit(feature_train_smote, target_train_smote)
 rf_smote_pred = rf.predict(feature_test)
-roc_rf_smote = roc_auc_score(target_test, rf_smote_pred)
-print(roc_rf_smote)
+#Calculte eval
+accuracy = accuracy_score(target_test, rf_smote_pred)
+
+precision = precision_score(target_test, rf_smote_pred)
+
+recall = recall_score(target_test, rf_smote_pred)
+
+f1 = f1_score(target_test, rf_smote_pred)
+
+roc_auc = roc_auc_score(target_test, rf_smote_pred)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #Scale data
 #Minmax
@@ -211,16 +149,44 @@ from sklearn.linear_model import LogisticRegression
 logistic_model = LogisticRegression()
 logistic_model.fit(feature_train_scaled, target_train_smote)
 logistic_pred_smote = logistic_model.predict(feature_test_scaled)
-roc_log_smote = roc_auc_score(target_test, logistic_pred_smote)
-print(roc_log_smote)
+#Calculate eval
+accuracy = accuracy_score(target_test, logistic_pred_smote)
+
+precision = precision_score(target_test, logistic_pred_smote)
+
+recall = recall_score(target_test, logistic_pred_smote)
+
+f1 = f1_score(target_test, logistic_pred_smote)
+
+roc_auc = roc_auc_score(target_test, logistic_pred_smote)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #SVM
 from sklearn.svm import SVC
 svm_model = SVC(kernel = 'linear')
 svm_model.fit(feature_train_scaled, target_train_smote)
 svm_pred_smote = svm_model.predict(feature_test_scaled)
-roc_svm_smote = roc_auc_score(target_test, svm_pred_smote)
-print(roc_svm_smote)
+#Calculate eval
+accuracy = accuracy_score(target_test, svm_pred_smote)
+
+precision = precision_score(target_test, svm_pred_smote)
+
+recall = recall_score(target_test, svm_pred_smote)
+
+f1 = f1_score(target_test, svm_pred_smote)
+
+roc_auc = roc_auc_score(target_test, svm_pred_smote)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #KNN
 from sklearn.neighbors import KNeighborsClassifier
@@ -228,16 +194,44 @@ knn_model_smote = KNeighborsClassifier(n_neighbors=3, metric='euclidean')
 knn_model_smote.fit(feature_train_scaled,target_train_smote)
 array = feature_test_scaled.values
 knn_pred_smote = knn_model_smote.predict(array)
-roc_knn_smote = roc_auc_score(target_test, knn_pred_smote)
-print(roc_knn_smote)
+#Calculate eval
+accuracy = accuracy_score(target_test, dec_smote_pred)
+
+precision = precision_score(target_test, dec_smote_pred)
+
+recall = recall_score(target_test, dec_smote_pred)
+
+f1 = f1_score(target_test, dec_smote_pred)
+
+roc_auc = roc_auc_score(target_test, dec_smote_pred)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 #XGboost
 import xgboost as xgb
 xgb_model = xgb.XGBClassifier(n_estimators=100, max_depth=3) 
 xgb_model.fit(feature_train_scaled, target_train_smote)
 xgb_pred = xgb_model.predict(feature_test_scaled)
-roc_xgb = roc_auc_score(target_test, xgb_pred)
-print(roc_xgb)
+#Calculate eval
+accuracy = accuracy_score(target_test, xgb_pred)
+
+precision = precision_score(target_test, xgb_pred)
+
+recall = recall_score(target_test, xgb_pred)
+
+f1 = f1_score(target_test, xgb_pred)
+
+roc_auc = roc_auc_score(target_test, xgb_pred)
+
+print("Accuracy:", accuracy)
+print("Precision:", precision)
+print("Recall:", recall)
+print("F1-Score:", f1)
+print("ROC:", roc_auc)
 
 
 
